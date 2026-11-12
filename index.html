@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMI JOURNEY | N Health</title>
+<style>
+:root{--navy:#071b3b;--cyan:#27c4e8;--gold:#e7b84b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial;background:#f3f7fb;color:#172b45}
+header{background:linear-gradient(120deg,#071b3b,#16466e);color:white;padding:35px 7%}
+header small{color:#8eeaff;letter-spacing:3px}
+header h1{font-size:38px;margin:12px 0}
+header p{letter-spacing:2px}
+main{max-width:1050px;margin:25px auto;padding:0 18px}
+.progress,.panel,.step{background:white;border:1px solid #dce6ef;border-radius:15px;padding:18px}
+.progress{margin-bottom:18px}
+.bar{height:9px;background:#e8eff5;border-radius:10px;margin-top:12px;overflow:hidden}
+.fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));width:0}
+.layout{display:grid;grid-template-columns:280px 1fr;gap:16px}
+.steps{display:grid;gap:9px;align-content:start}
+.step{cursor:pointer;text-align:left;font:inherit}
+.step.active{border:2px solid var(--cyan);background:#effbfe}
+.step:disabled{opacity:.4;cursor:not-allowed}
+.panel{padding:28px;min-height:400px}
+h2{color:var(--navy)}
+.eyebrow{color:#1685a6;font-size:12px;letter-spacing:2px}
+.lead{color:#64748b;line-height:1.8}
+.call{background:#eef9fc;border-left:4px solid var(--cyan);padding:15px;margin:18px 0;line-height:1.8}
+button{font:inherit}
+.btn{background:var(--navy);color:white;border:0;border-radius:9px;padding:12px 18px;cursor:pointer;font-weight:bold}
+.gold{background:var(--gold);color:#17243a}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+label{display:block;font-weight:bold;margin-bottom:7px}
+input,select{width:100%;padding:12px;border:1px solid #cbd8e3;border-radius:8px;font:inherit}
+.result{background:var(--navy);color:white;padding:20px;border-radius:12px;margin:15px 0}
+.result strong{font-size:34px;color:#8eeaff}
+.option{padding:12px;border:1px solid #dce6ef;border-radius:9px;margin:9px 0}
+.option input{width:auto}
+.good{background:#e8f7ef;padding:12px;border-radius:9px;margin:12px 0}
+.bad{background:#fff4e6;padding:12px;border-radius:9px;margin:12px 0}
+.muted{font-size:12px;color:#64748b;line-height:1.7;margin:12px 0}
+footer{text-align:center;color:#64748b;padding:25px;font-size:12px}
+@media(max-width:700px){.layout{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.fields{grid-template-columns:1fr}header h1{font-size:30px}.panel{padding:18px}}
+</style>
+</head>
+<body>
+
+<header>
+<small>N HEALTH • WELLNESS EXPERIENCE</small>
+<h1>🦉 BMI JOURNEY</h1>
+<p>KNOW YOUR BODY. CHOOSE YOUR HEALTH.</p>
+</header>
+
+<main>
+<section class="progress">
+<b>YOUR JOURNEY PROGRESS</b>
+<span id="pct" style="float:right">0 / 6 checkpoints</span>
+<div class="bar"><div class="fill" id="fill"></div></div>
+<p class="muted">สะสมคะแนนจากการเรียนรู้และทำภารกิจในแต่ละด่าน</p>
+</section>
+
+<div class="layout">
+<nav class="steps" id="steps"></nav>
+<section class="panel" id="content"></section>
+</div>
+</main>
+
+<footer>N Health • BMI Journey | BMI เป็นเครื่องมือคัดกรองเบื้องต้น ไม่ใช่การวินิจฉัยโรค</footer>
+
+<script>
+const names=[
+"START YOUR JOURNEY",
+"KNOW YOUR BMI",
+"BMI MISSION",
+"BEYOND THE NUMBER",
+"SMART HEALTH CHOICE",
+"MY WELLNESS GOAL"
+];
+
+const descriptions=[
+"เริ่มต้นเส้นทางสุขภาพ",
+"รู้จักค่าดัชนีมวลกาย",
+"ภารกิจพิชิตความรู้",
+"สุขภาพมีมากกว่าตัวเลข",
+"เลือกสุขภาพอย่างชาญฉลาด",
+"ตั้งเป้าหมายสุขภาพ"
+];
+
+let completed=JSON.parse(localStorage.getItem("bmiDone")||"[]");
+let points=Number(localStorage.getItem("bmiPoints")||0);
+let current=0;
+
+function save(){
+ localStorage.setItem("bmiDone",JSON.stringify(completed));
+ localStorage.setItem("bmiPoints",points);
+}
+
+function finish(i,score=10){
+ if(!completed.includes(i)){
+  completed.push(i);
+  points+=score;
+  save();
+ }
+ render();
+}
+
+function go(i){
+ if(i===0||completed.includes(i-1)){
+  current=i;
+  render();
+ }
+}
+
+function render(){
+ document.getElementById("pct").textContent=
+ completed.length+" / 6 checkpoints • "+points+" points";
+
+ document.getElementById("fill").style.width=
+ (completed.length/6*100)+"%";
+
+ document.getElementById("steps").innerHTML=
+ names.map((name,i)=>`
+ <button class="step ${i===current?"active":""}"
+ ${i>0&&!completed.includes(i-1)?"disabled":""}
+ onclick="go(${i})">
+ <b>${completed.includes(i)?"✓":i+1} ${name}</b>
+ <br><small>${descriptions[i]}</small>
+ </button>`).join("");
+
+ const c=document.getElementById("content");
+ const heading=(tag,title,description)=>`
+ <div class="eyebrow">${tag}</div>
+ <h2>${title}</h2>
+ <div class="lead">${description}</div>`;
+
+ if(current===0){
+  c.innerHTML=heading("WELCOME TO YOUR JOURNEY",
+  "ทุกการเปลี่ยนแปลง เริ่มต้นจากการรู้จักตัวเอง",
+  "ยินดีต้อนรับสู่ BMI JOURNEY เรียนรู้เรื่องสุขภาพผ่าน 6 checkpoints เพื่อเข้าใจร่างกายและเลือกดูแลตัวเองได้เหมาะสม")
+  +`<div class="call">🦉 <b>Owl Journey Guide</b><br>
+  พร้อมพาคุณเรียนรู้ทีละด่าน ตั้งแต่การรู้จัก BMI ไปจนถึงการตั้งเป้าหมายสุขภาพ</div>
+  <button class="btn gold" onclick="finish(0)">เริ่มต้น Journey (+10 points)</button>`;
+ }
+
+ if(current===1){
+  c.innerHTML=heading("CHECKPOINT 02 • KNOW YOUR BMI",
+  "คำนวณ BMI ของคุณ",
+  "BMI เป็นค่าคัดกรองเบื้องต้นจากน้ำหนักและส่วนสูง ไม่ใช่การวินิจฉัยโรค")
+  +`<div class="fields">
+  <div><label>น้ำหนัก (กิโลกรัม)</label><input id="weight" type="number" min="1" placeholder="เช่น 60"></div>
+  <div><label>ส่วนสูง (เซนติเมตร)</label><input id="height" type="number" min="50" placeholder="เช่น 165"></div>
+  </div>
+  <button class="btn" onclick="calculateBMI()">คำนวณ BMI</button>
+  <div id="bmiResult"></div>
+  <div class="muted">เกณฑ์ผู้ใหญ่ชาวเอเชีย: ต่ำกว่า 18.5 น้ำหนักน้อย • 18.5–22.9 ปกติ • 23–24.9 น้ำหนักเกิน • 25–29.9 อ้วนระดับ 1 • ตั้งแต่ 30 อ้วนระดับ 2<br>
+  ไม่ใช้กับเด็ก วัยรุ่น หรือหญิงตั้งครรภ์</div>
+  <div class="call">ผล BMI เป็นข้อมูลคัดกรองเบื้องต้น ควรพิจารณาร่วมกับปัจจัยสุขภาพอื่น</div>
+  <button class="btn" onclick="finish(1)">เรียนรู้แล้ว ไปต่อ (+10 points)</button>`;
+ }
+
+ if(current===2){
+  c.innerHTML=heading("CHECKPOINT 03 • BMI MISSION",
+  "ภารกิจทดสอบความเข้าใจ",
+  "เลือกคำตอบที่ถูกต้องเพื่อปลดล็อกด่านถัดไป")
+  +`<p><b>BMI คำนวณจากข้อมูลใด?</b></p>
+  <label class="option"><input type="radio" name="quiz" value="a"> อายุและส่วนสูง</label>
+  <label class="option"><input type="radio" name="quiz" value="b"> น้ำหนักและส่วนสูง</label>
+  <label class="option"><input type="radio" name="quiz" value="c"> รอบเอวและอายุ</label>
+  <div id="feedback"></div>
+  <button class="btn" onclick="checkQuiz()">ส่งคำตอบ</button>`;
+ }
+
+ if(current===3){
+  c.innerHTML=heading("CHECKPOINT 04 • BEYOND THE NUMBER",
+  "สุขภาพมีมากกว่าตัวเลข BMI",
+  "BMI เป็นเพียงหนึ่งในข้อมูลคัดกรองสุขภาพ ยังมีปัจจัยอื่นที่ควรใส่ใจร่วมด้วย")
+  +`<div class="call"><b>4 เรื่องที่ควรดูแลควบคู่กัน</b>
+  <ul><li>คุณภาพอาหารและปริมาณที่เหมาะสม</li>
+  <li>การเคลื่อนไหวและกิจกรรมทางกาย</li>
+  <li>การนอนหลับและการพักผ่อน</li>
+  <li>ความเครียดและสุขภาพใจ</li></ul></div>
+  <button class="btn" onclick="finish(3)">เข้าใจแล้ว ไปต่อ (+10 points)</button>`;
+ }
+
+ if(current===4){
+  c.innerHTML=heading("CHECKPOINT 05 • SMART HEALTH CHOICE",
+  "เลือกสุขภาพอย่างชาญฉลาด",
+  "เริ่มจากการปรับพฤติกรรมเล็ก ๆ ที่ทำได้จริงในชีวิตประจำวัน")
+  +`<div class="call"><b>แนวทางจานอาหาร 2:1:1</b><br>
+  ½ จาน ผัก • ¼ จาน ข้าวหรือแป้ง • ¼ จาน โปรตีน</div>
+  <div class="call"><b>SMART MOVE</b><br>
+  เลือกเดินเพิ่มระหว่างวัน ลุกเปลี่ยนอิริยาบถ หรือทำกิจกรรมที่ชอบอย่างสม่ำเสมอ</div>
+  <button class="btn" onclick="finish(4)">พร้อมเลือกสิ่งดี ๆ (+10 points)</button>`;
+ }
+
+ if(current===5){
+  c.innerHTML=heading("CHECKPOINT 06 • MY WELLNESS GOAL",
+  "เป้าหมายสุขภาพของฉัน",
+  "เลือกหนึ่งพฤติกรรมที่คุณอยากเริ่มทำ และกำหนดเป้าหมายที่ชัดเจน")
+  +`<div><label>เป้าหมายสุขภาพของฉัน</label>
+  <select id="goal">
+  <option value="">เลือกเป้าหมาย</option>
+  <option>เพิ่มการเคลื่อนไหวในแต่ละวัน</option>
+  <option>รับประทานผักและผลไม้ให้หลากหลาย</option>
+  <option>ดื่มน้ำให้เพียงพอ</option>
+  <option>นอนหลับให้เป็นเวลา</option>
+  <option>จัดการความเครียดอย่างเหมาะสม</option>
+  </select></div>
+  <div style="margin-top:15px"><label>ฉันจะเริ่มทำอย่างไร?</label>
+  <input id="plan" placeholder="เช่น เดินหลังอาหารกลางวัน 10 นาที"></div>
+  <br><button class="btn gold" onclick="saveGoal()">บันทึกเป้าหมายและจบ Journey</button>
+  <div id="goalFeedback"></div>
+  <div class="call">คะแนนและเป้าหมายในเวอร์ชันนี้บันทึกเฉพาะในเบราว์เซอร์นี้ ยังไม่มี Dashboard กลางของ HRD</div>`;
+ }
+}
+
+function calculateBMI(){
+ const w=Number(document.getElementById("weight").value);
+ const h=Number(document.getElementById("height").value)/100;
+ if(!w||!h||w<=0||h<=0){
+  alert("กรุณากรอกน้ำหนักและส่วนสูงให้ถูกต้อง");
+  return;
+ }
+ const bmi=w/(h*h);
+ const category=bmi<18.5?"น้ำหนักน้อย":
+ bmi<23?"ปกติ":bmi<25?"น้ำหนักเกิน":
+ bmi<30?"อ้วนระดับ 1":"อ้วนระดับ 2";
+
+ document.getElementById("bmiResult").innerHTML=
+ `<div class="result">ค่า BMI ของคุณ<br>
+ <strong>${bmi.toFixed(1)}</strong><br>${category}
+ <p class="muted" style="color:#d5e6f5">คำนวณในเบราว์เซอร์ ไม่ส่งไปยังเซิร์ฟเวอร์</p></div>`;
+}
+
+function checkQuiz(){
+ const answer=document.querySelector('input[name="quiz"]:checked');
+ const feedback=document.getElementById("feedback");
+ if(!answer){
+  feedback.innerHTML='<div class="bad">กรุณาเลือกคำตอบก่อน</div>';
+  return;
+ }
+ if(answer.value==="b"){
+  feedback.innerHTML=
+  '<div class="good">ถูกต้อง! BMI = น้ำหนัก (กิโลกรัม) ÷ ส่วนสูง (เมตร)²</div>'+
+  '<button class="btn" onclick="finish(2,20)">รับ 20 points และไปต่อ</button>';
+ }else{
+  feedback.innerHTML='<div class="bad">ยังไม่ถูกต้อง ลองอีกครั้งนะครับ</div>';
+ }
+}
+
+function saveGoal(){
+ const goal=document.getElementById("goal").value;
+ const plan=document.getElementById("plan").value.trim();
+ const feedback=document.getElementById("goalFeedback");
+ if(!goal||!plan){
+  feedback.innerHTML='<div class="bad">กรุณาเลือกเป้าหมายและระบุวิธีเริ่มต้น</div>';
+  return;
+ }
+ localStorage.setItem("bmiWellnessGoal",JSON.stringify({goal,plan}));
+ finish(5,20);
+ feedback.innerHTML='<div class="good">บันทึกเป้าหมายแล้ว ยินดีด้วย คุณจบ BMI JOURNEY! 🦉</div>';
+}
+
+render();
+</script>
+</body>
+</html>
